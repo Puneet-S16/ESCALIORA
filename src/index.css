@@ -1,0 +1,119 @@
+import { useEffect, useState } from 'react';
+import Lenis from 'lenis';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Cursor } from './components/Cursor';
+import { Navbar } from './sections/Navbar';
+import { Hero } from './sections/Hero';
+import { StatsStrip } from './sections/StatsStrip';
+import { Manifesto } from './sections/Manifesto';
+import { WhyEscaliora } from './sections/WhyEscaliora';
+import { Workflow } from './sections/Workflow';
+import { HowItWorks } from './sections/HowItWorks';
+import { CaseTypes } from './sections/CaseTypes';
+import { EvidenceSupported } from './sections/EvidenceSupported';
+import { FAQ } from './sections/FAQ';
+import { FinalCTA } from './sections/FinalCTA';
+import { Footer } from './sections/Footer';
+
+gsap.registerPlugin(ScrollTrigger);
+
+function App() {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window === 'undefined') return 'light';
+    const saved = localStorage.getItem('escaliora-theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    localStorage.setItem('escaliora-theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const syncTheme = () => {
+      const saved = localStorage.getItem('escaliora-theme');
+      if (!saved) {
+        setTheme(media.matches ? 'dark' : 'light');
+      }
+    };
+
+    media.addEventListener('change', syncTheme);
+    return () => media.removeEventListener('change', syncTheme);
+  }, []);
+
+  useEffect(() => {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) return;
+
+    const lenis = new Lenis({
+      duration: 1.2,
+      smoothWheel: true,
+      wheelMultiplier: 0.9,
+      touchMultiplier: 1.4,
+    });
+
+    lenis.on('scroll', ScrollTrigger.update);
+
+    const raf = (time: number) => {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    };
+
+    const frame = requestAnimationFrame(raf);
+    ScrollTrigger.defaults({ scroller: document.body });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      lenis.destroy();
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+    };
+  }, []);
+
+  useEffect(() => {
+    const bar = document.getElementById('scroll-progress-bar');
+    if (!bar) return;
+
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (motion) {
+      bar.style.width = '100%';
+      return;
+    }
+
+    const trigger = ScrollTrigger.create({
+      start: 'top top',
+      end: 'bottom bottom',
+      onUpdate: (self) => {
+        const progress = self.progress;
+        bar.style.width = `${progress * 100}%`;
+      },
+    });
+
+    return () => trigger.kill();
+  }, []);
+
+  return (
+    <div className="bg-background text-text transition-colors duration-300">
+      <div id="scroll-progress-bar" className="fixed left-0 top-0 z-[70] h-[2px] w-0 bg-accent transition-all duration-300" />
+      <Cursor />
+      <Navbar theme={theme} onToggle={() => setTheme((curr) => (curr === 'dark' ? 'light' : 'dark'))} />
+      <main>
+        <Hero />
+        <StatsStrip />
+        <Manifesto />
+        <WhyEscaliora />
+        <Workflow />
+        <HowItWorks />
+        <CaseTypes />
+        <EvidenceSupported />
+        <FAQ />
+        <FinalCTA />
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+export default App;
