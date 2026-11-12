@@ -1,17 +1,3 @@
-import type { HTMLAttributes, ReactNode } from 'react';
-
-export function Card({ className = '', children, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      {...props}
-      className={`rounded-card border border-border bg-surface shadow-soft ${className}`.trim()}
-    >
-      {children}
-    </div>
-  );
-}
-
-export type CardProps = {
-  className?: string;
-  children: ReactNode;
-};
+import { Moon, Sun } from 'lucide-react';
+type Props = { theme: 'light' | 'dark'; onToggle: () => void };
+export function ThemeToggle({ theme, onToggle }: Props) { const dark = theme === 'dark'; return <button type="button" onClick={onToggle} aria-label={`Switch to ${dark ? 'light' : 'dark'} theme`} aria-pressed={dark} className="grid h-10 w-10 place-items-center rounded-full border border-border bg-surface text-text transition-colors hover:border-accent"><span className="transition-transform duration-300" style={{ transform: `rotate(${dark ? 180 : 0}deg) scale(${dark ? 1 : .9})` }}>{dark ? <Moon size={18} strokeWidth={1.5}/> : <Sun size={18} strokeWidth={1.5}/>}</span></button>; }
